@@ -38,5 +38,5 @@ Loader/bin
 TestPlugin/obj
 TestPlugin/bin
 
-bin
+bin/Debug/*
 !bin/Debug/Loader.runtimeconfig.json
