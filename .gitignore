@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+.vs
+nativehost/build
+Loader/obj
+Loader/bin
+TestPlugin/obj
+TestPlugin/bin
+
+bin
+!bin/Debug/Loader.runtimeconfig.json
