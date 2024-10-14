@@ -21,3 +21,18 @@ cd ../../bin/Debug
 ```
 ps -ef | grep 'nativehost' | grep -v grep | awk '{print $2}' | xargs -r kill -15
 ```
+
+# build luabind
+```
+wget https://www.lua.org/ftp/lua-5.4.7.tar.gz
+cd lua-5.4.7
+make linux
+make install
+ldconfig -v
+```
+
+cd src && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/man/man1 /usr/local/share/lua/5.4 /usr/local/lib/lua/5.4
+cd src && install -p -m 0755 lua luac /usr/local/bin
+cd src && install -p -m 0644 lua.h luaconf.h lualib.h lauxlib.h lua.hpp /usr/local/include
+cd src && install -p -m 0644 liblua.a /usr/local/lib
+cd doc && install -p -m 0644 lua.1 luac.1 /usr/local/man/man1
