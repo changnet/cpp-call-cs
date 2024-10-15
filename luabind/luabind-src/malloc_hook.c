@@ -2,7 +2,6 @@
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <lua.h>
 #include <stdio.h>
 
 #include "malloc_hook.h"
@@ -36,14 +35,7 @@ struct mem_cookie {
 
 static struct mem_data mem_stats[SLOT_SIZE];
 
-
-#ifndef NOUSE_JEMALLOC
-
 #include "jemalloc.h"
-
-// for skynet_lalloc use
-#define raw_realloc je_realloc
-#define raw_free je_free
 
 static ATOM_SIZET *
 get_allocated_field(uint32_t handle) {
@@ -86,6 +78,19 @@ update_xmalloc_stat_free(uint32_t handle, size_t __n) {
 	}
 }
 
+void debug_call(const char *msg)
+{
+	fprintf(stderr, "malloc call %s\n", msg);
+	fflush(stderr);
+}
+
+static void malloc_oom(size_t size) {
+	fprintf(stderr, "xmalloc: Out of memory trying to allocate %zu bytes\n",
+		size);
+	fflush(stderr);
+	abort();
+}
+
 inline static void*
 fill_prefix(char* ptr, size_t sz, uint32_t cookie_size) {
 	uint32_t handle = 0xFFFF; //skynet_current_handle();
@@ -125,70 +130,12 @@ clean_prefix(char* ptr) {
 	return p;
 }
 
-static void malloc_oom(size_t size) {
-	fprintf(stderr, "xmalloc: Out of memory trying to allocate %zu bytes\n",
-		size);
-	fflush(stderr);
-	abort();
-}
-
-void
-memory_info_dump(const char* opts) {
-	je_malloc_stats_print(0,0, opts);
-}
-
-bool
-mallctl_bool(const char* name, bool* newval) {
-	bool v = 0;
-	size_t len = sizeof(v);
-	if(newval) {
-		je_mallctl(name, &v, &len, newval, sizeof(bool));
-	} else {
-		je_mallctl(name, &v, &len, NULL, 0);
-	}
-	return v;
-}
-
-int
-mallctl_cmd(const char* name) {
-	return je_mallctl(name, NULL, NULL, NULL, 0);
-}
-
-size_t
-mallctl_int64(const char* name, size_t* newval) {
-	size_t v = 0;
-	size_t len = sizeof(v);
-	if(newval) {
-		je_mallctl(name, &v, &len, newval, sizeof(size_t));
-	} else {
-		je_mallctl(name, &v, &len, NULL, 0);
-	}
-	// //skynet_error(NULL, "name: %s, value: %zd\n", name, v);
-	return v;
-}
-
-int
-mallctl_opt(const char* name, int* newval) {
-	int v = 0;
-	size_t len = sizeof(v);
-	if(newval) {
-		int ret = je_mallctl(name, &v, &len, newval, sizeof(int));
-		if(ret == 0) {
-			//skynet_error(NULL, "set new value(%d) for (%s) succeed\n", *newval, name);
-		} else {
-			//skynet_error(NULL, "set new value(%d) for (%s) failed: error -> %d\n", *newval, name, ret);
-		}
-	} else {
-		je_mallctl(name, &v, &len, NULL, 0);
-	}
-
-	return v;
-}
 
 // hook : malloc, realloc, free, calloc
 
 void *
 skynet_malloc(size_t size) {
+	debug_call("skynet_malloc");
 	void* ptr = je_malloc(size + PREFIX_SIZE);
 	if(!ptr) malloc_oom(size);
 	return fill_prefix(ptr, size, PREFIX_SIZE);
@@ -198,6 +145,7 @@ void *
 skynet_realloc(void *ptr, size_t size) {
 	if (ptr == NULL) return skynet_malloc(size);
 
+	debug_call("skynet_realloc");
 	uint32_t cookie_size = get_cookie_size(ptr);
 	void* rawptr = clean_prefix(ptr);
 	void *newptr = je_realloc(rawptr, size+cookie_size);
@@ -208,12 +156,14 @@ skynet_realloc(void *ptr, size_t size) {
 void
 skynet_free(void *ptr) {
 	if (ptr == NULL) return;
+	debug_call("skynet_free");
 	void* rawptr = clean_prefix(ptr);
 	je_free(rawptr);
 }
 
 void *
 skynet_calloc(size_t nmemb, size_t size) {
+	debug_call("skynet_calloc");
 	uint32_t cookie_n = (PREFIX_SIZE+size-1)/size;
 	void* ptr = je_calloc(nmemb + cookie_n, size);
 	if(!ptr) malloc_oom(nmemb * size);
@@ -237,6 +187,7 @@ alignment_cookie_size(size_t alignment) {
 
 void *
 skynet_memalign(size_t alignment, size_t size) {
+	debug_call("skynet_memalign");
 	uint32_t cookie_size = alignment_cookie_size(alignment);
 	void* ptr = je_memalign(alignment, size + cookie_size);
 	if(!ptr) malloc_oom(size);
@@ -245,6 +196,7 @@ skynet_memalign(size_t alignment, size_t size) {
 
 void *
 skynet_aligned_alloc(size_t alignment, size_t size) {
+	debug_call("skynet_aligned_alloc");
 	uint32_t cookie_size = alignment_cookie_size(alignment);
 	void* ptr = je_aligned_alloc(alignment, size + cookie_size);
 	if(!ptr) malloc_oom(size);
@@ -253,124 +205,10 @@ skynet_aligned_alloc(size_t alignment, size_t size) {
 
 int
 skynet_posix_memalign(void **memptr, size_t alignment, size_t size) {
+	debug_call("skynet_posix_memalign");
 	uint32_t cookie_size = alignment_cookie_size(alignment);
 	int err = je_posix_memalign(memptr, alignment, size + cookie_size);
 	if (err) malloc_oom(size);
 	fill_prefix(*memptr, size, cookie_size);
 	return err;
-}
-
-#else
-
-// for skynet_lalloc use
-#define raw_realloc realloc
-#define raw_free free
-
-void
-memory_info_dump(const char* opts) {
-	//skynet_error(NULL, "No jemalloc");
-}
-
-size_t
-mallctl_int64(const char* name, size_t* newval) {
-	//skynet_error(NULL, "No jemalloc : mallctl_int64 %s.", name);
-	return 0;
-}
-
-int
-mallctl_opt(const char* name, int* newval) {
-	//skynet_error(NULL, "No jemalloc : mallctl_opt %s.", name);
-	return 0;
-}
-
-bool
-mallctl_bool(const char* name, bool* newval) {
-	//skynet_error(NULL, "No jemalloc : mallctl_bool %s.", name);
-	return 0;
-}
-
-int
-mallctl_cmd(const char* name) {
-	//skynet_error(NULL, "No jemalloc : mallctl_cmd %s.", name);
-	return 0;
-}
-
-#endif
-
-size_t
-malloc_used_memory(void) {
-	return ATOM_LOAD(&_used_memory);
-}
-
-size_t
-malloc_memory_block(void) {
-	return ATOM_LOAD(&_memory_block);
-}
-
-void
-dump_c_mem() {
-	int i;
-	size_t total = 0;
-	//skynet_error(NULL, "dump all service mem:");
-	for(i=0; i<SLOT_SIZE; i++) {
-		struct mem_data* data = &mem_stats[i];
-		if(data->handle != 0 && data->allocated != 0) {
-			total += data->allocated;
-			//skynet_error(NULL, ":%08x -> %zdkb %db", data->handle, data->allocated >> 10, (int)(data->allocated % 1024));
-		}
-	}
-	//skynet_error(NULL, "+total: %zdkb",total >> 10);
-}
-
-char *
-skynet_strdup(const char *str) {
-	size_t sz = strlen(str);
-	char * ret = skynet_malloc(sz+1);
-	memcpy(ret, str, sz+1);
-	return ret;
-}
-
-void *
-skynet_lalloc(void *ptr, size_t osize, size_t nsize) {
-	if (nsize == 0) {
-		raw_free(ptr);
-		return NULL;
-	} else {
-		return raw_realloc(ptr, nsize);
-	}
-}
-
-int
-dump_mem_lua(lua_State *L) {
-	int i;
-	lua_newtable(L);
-	for(i=0; i<SLOT_SIZE; i++) {
-		struct mem_data* data = &mem_stats[i];
-		if(data->handle != 0 && data->allocated != 0) {
-			lua_pushinteger(L, data->allocated);
-			lua_rawseti(L, -2, (lua_Integer)data->handle);
-		}
-	}
-	return 1;
-}
-
-size_t
-malloc_current_memory(void) {
-	uint32_t handle = 0xFFFF; //skynet_current_handle();
-	int i;
-	for(i=0; i<SLOT_SIZE; i++) {
-		struct mem_data* data = &mem_stats[i];
-		if(data->handle == (uint32_t)handle && data->allocated != 0) {
-			return (size_t) data->allocated;
-		}
-	}
-	return 0;
-}
-
-void
-skynet_debug_memory(const char *info) {
-	// for debug use
-	uint32_t handle = 0xFFFF; //skynet_current_handle();
-	size_t mem = malloc_current_memory();
-	fprintf(stderr, "[:%08x] %s %p\n", handle, info, (void *)mem);
 }

@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.8.1)
 project (je_nativehost)
 
 set(CMAKE_CXX_STANDARD 11)
-add_definitions("-std=c++11 -g3")
+add_definitions("-std=c++11 -g3 -D__STDC_NO_ATOMICS__")
 
 
 include_directories(
