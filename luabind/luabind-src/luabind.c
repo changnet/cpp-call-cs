@@ -4,7 +4,6 @@
 
 #include <assert.h>
 
-#include "skynet_malloc.h"
 #include "malloc_hook.h"
 
 int main(int argc, char *argv[])

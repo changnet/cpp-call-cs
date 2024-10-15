@@ -5,12 +5,11 @@
 #include <lua.h>
 #include <stdio.h>
 
-#include "skynet_malloc.h"
 #include "malloc_hook.h"
 #include "atomic.h"
 
 // turn on MEMORY_CHECK can do more memory check, such as double free
-// #define MEMORY_CHECK
+#define MEMORY_CHECK
 
 #define MEMORY_ALLOCTAG 0x20140605
 #define MEMORY_FREETAG 0x0badf00d
