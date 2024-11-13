@@ -9,7 +9,7 @@
 #include "malloc_hook.h"
 
 // turn on MEMORY_CHECK can do more memory check, such as double free
-// #define MEMORY_CHECK
+#define MEMORY_CHECK
 
 #define MEMORY_ALLOCTAG 0x20140605
 #define MEMORY_FREETAG 0x0badf00d
@@ -95,7 +95,7 @@ skynet_realloc(void *ptr, size_t size) {
 
 void
 skynet_free(void *ptr) {
-	return;
+	return; // no need for this test
 	if (ptr == NULL) return;
 	void* rawptr = clean_prefix(ptr);
 	je_free(rawptr);
