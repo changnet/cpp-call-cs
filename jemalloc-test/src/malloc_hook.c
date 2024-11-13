@@ -9,7 +9,7 @@
 #include "malloc_hook.h"
 
 // turn on MEMORY_CHECK can do more memory check, such as double free
-#define MEMORY_CHECK
+// #define MEMORY_CHECK
 
 #define MEMORY_ALLOCTAG 0x20140605
 #define MEMORY_FREETAG 0x0badf00d
@@ -103,58 +103,29 @@ skynet_free(void *ptr) {
 
 void *
 skynet_calloc(size_t nmemb, size_t size) {
-	return je_calloc(nmemb, size);
 	uint32_t cookie_n = (PREFIX_SIZE+size-1)/size;
 	void* ptr = je_calloc(nmemb + cookie_n, size);
 	if(!ptr) malloc_oom(nmemb * size);
-	
-	fprintf(stderr, "calloc nmemb = %zu, size = %zu cookie_n = %zu, cs = %zu\n", nmemb, size, (size_t)cookie_n, cookie_n * size);
-	fflush(stderr);
 	return fill_prefix(ptr, nmemb * size, cookie_n * size);
-}
-
-static inline uint32_t
-alignment_cookie_size(size_t alignment) {
-	if (alignment >= PREFIX_SIZE)
-		return alignment;
-	switch (alignment) {
-	case 4 :
-		return (PREFIX_SIZE + 3) / 4 * 4;
-	case 8 :
-		return (PREFIX_SIZE + 7) / 8 * 8;
-	case 16 :
-		return (PREFIX_SIZE + 15) / 16 * 16;
-	}
-	return (PREFIX_SIZE + alignment - 1) / alignment * alignment;
 }
 
 void *
 skynet_memalign(size_t alignment, size_t size) {
-	assert(false);
+	assert(false); // no need for this test
 
-	uint32_t cookie_size = alignment_cookie_size(alignment);
-	void* ptr = je_memalign(alignment, size + cookie_size);
-	if(!ptr) malloc_oom(size);
-	return fill_prefix(ptr, size, cookie_size);
+	return NULL;
 }
 
 void *
 skynet_aligned_alloc(size_t alignment, size_t size) {
-	assert(false);
+	assert(false); // no need for this test
 
-	uint32_t cookie_size = alignment_cookie_size(alignment);
-	void* ptr = je_aligned_alloc(alignment, size + cookie_size);
-	if(!ptr) malloc_oom(size);
-	void *np = fill_prefix(ptr, size, cookie_size);
-	return np;
+	return NULL;
 }
 
 int
 skynet_posix_memalign(void **memptr, size_t alignment, size_t size) {
-	assert(false);
-	uint32_t cookie_size = alignment_cookie_size(alignment);
-	int err = je_posix_memalign(memptr, alignment, size + cookie_size);
-	if (err) malloc_oom(size);
-	fill_prefix(*memptr, size, cookie_size);
-	return err;
+	assert(false); // no need for this test
+
+	return 0;
 }

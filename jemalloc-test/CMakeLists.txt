@@ -3,19 +3,19 @@ cmake_minimum_required (VERSION 2.8.1)
 project (je_nativehost)
 
 set(CMAKE_CXX_STANDARD 11)
-add_definitions("-std=c++11 -g3 -D__STDC_NO_ATOMICS__")
+add_definitions("-g3")
 
 
 include_directories(
 	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/6.0.32/runtimes/linux-x64/native/
 	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/8.0.10/runtimes/linux-x64/native/
-	/home/xzc/jemalloc-5.3.0/include/jemalloc
+	/usr/local/include/jemalloc
 )
 
 link_directories(
 	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/6.0.32/runtimes/linux-x64/native/
 	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/8.0.10/runtimes/linux-x64/native/
-	/home/xzc/jemalloc-5.3.0/lib
+	/usr/local/lib/
 )
 
 add_executable(je_nativehost src/malloc_hook.c src/je_nativehost.cpp)

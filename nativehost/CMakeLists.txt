@@ -7,13 +7,13 @@ add_definitions("-std=c++11 -g3")
 
 
 include_directories(
-	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/6.0.32/runtimes/linux-x64/native/
+	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/8.0.10/runtimes/linux-x64/native/
 )
 
 file(GLOB_RECURSE SRC_LIST "src/*.cpp")
 
 link_directories(
-	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/6.0.32/runtimes/linux-x64/native/
+	/usr/share/dotnet/packs/Microsoft.NETCore.App.Host.linux-x64/8.0.10/runtimes/linux-x64/native/
 )
 
 add_executable(nativehost ${SRC_LIST})
