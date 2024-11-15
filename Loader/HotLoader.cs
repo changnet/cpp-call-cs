@@ -19,10 +19,12 @@ namespace Loader
         {
             public IntPtr PluginPath;
             public IntPtr p1;
+            public IntPtr p2;
         }
 
         delegate void LogFuncDelegate([MarshalAs(UnmanagedType.LPUTF8Str)] string foo);
 
+        private static IntPtr retVal = new IntPtr(0);
         private static LogFuncDelegate? logFunc = null;
         private static Dictionary<string, PluginData> md = new Dictionary<string, PluginData>();
 
@@ -117,6 +119,7 @@ namespace Loader
         {
             string pluginPath = Marshal.PtrToStringUTF8(args.PluginPath) ?? "";
             string methodName = Marshal.PtrToStringUTF8(args.p1) ?? "";
+            string methodParam = Marshal.PtrToStringUTF8(args.p2) ?? "";
 
             Console.WriteLine($"call {pluginPath} {methodName}");
             PluginData data;
@@ -133,12 +136,19 @@ namespace Loader
                 return 1;
             }
 
-            var r = mi.Invoke(data.ins, null);
+            object[] methodParams = new object[1];
+            methodParams[0] = methodParam;
+            var r = mi.Invoke(data.ins, methodParams);
             if (r == null)
             {
                 return 0;
             }
-            return (long)r;
+            if (0 != retVal.ToInt64())
+            {
+                Marshal.FreeCoTaskMem(retVal);
+            }
+            retVal = Marshal.StringToCoTaskMemUTF8((string)r);
+            return retVal.ToInt64();
         }
 
     }

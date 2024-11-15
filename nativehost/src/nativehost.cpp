@@ -116,6 +116,7 @@ namespace
         {
             const char *PluginPath;
             const char *p1;
+			const char *p2;
         };
 		typedef int64_t (CORECLR_DELEGATE_CALLTYPE* custom_entry_point_fn)(PluginArgs args);
 
@@ -163,16 +164,25 @@ namespace
         PluginArgs args
         {
             "TestPlugin.dll",
-            "TestPlugin.Test"
+            "TestPlugin.Test",
+			""
         };
         PluginArgs cargs
         {
             "TestPlugin.dll",
-            "RunTest"
+            "RunTest",
+			"ssssssssss"
+        };
+        PluginArgs gcargs
+        {
+            "TestPlugin.dll",
+            "RunGcTest",
+			"foo"
         };
 
         load((void *)&args, sizeof(PluginArgs));
         call(cargs);
+		call(gcargs);
         unload((void*)&args, sizeof(PluginArgs));
 
 		std::cout << "wait 20s to update plugin" << std::endl;
@@ -180,6 +190,7 @@ namespace
 
         load((void*)&args, sizeof(PluginArgs));
         call(cargs);
+		call(gcargs);
         unload((void*)&args, sizeof(PluginArgs));
  
         return EXIT_SUCCESS;

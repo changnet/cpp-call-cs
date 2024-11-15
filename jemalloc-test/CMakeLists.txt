@@ -20,4 +20,6 @@ link_directories(
 
 add_executable(je_nativehost src/malloc_hook.c src/je_nativehost.cpp)
 target_link_libraries(je_nativehost jemalloc_pic.a nethost pthread dl)
+add_executable(je_nativehost2 src/malloc_hook2.c src/je_nativehost.cpp)
+target_link_libraries(je_nativehost2 jemalloc_pic.a nethost pthread dl)
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_LIST_DIR}/../bin/Debug")
