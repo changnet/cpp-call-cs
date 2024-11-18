@@ -172,6 +172,8 @@ namespace
         };
 
         load((void *)&args, sizeof(PluginArgs));
+		std::cout << "wait 10s to update plugin" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10 * 1000));
         call(cargs);
         unload((void*)&args, sizeof(PluginArgs));
 
