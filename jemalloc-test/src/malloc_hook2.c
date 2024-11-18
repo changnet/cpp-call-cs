@@ -28,52 +28,37 @@ struct mem_cookie {
 
 void *
 skynet_malloc(size_t size) {
-	void* ptr = je_malloc(size + PREFIX_SIZE);
-	void *new_ptr = (char *)ptr + PREFIX_SIZE;
-	
-	memset(new_ptr, 0, size); // check memory is ok
-	return new_ptr;
+	return je_malloc(size);;
 }
 
 void *
 skynet_realloc(void *ptr, size_t size) {
 	if (ptr == NULL) return skynet_malloc(size);
-	void *new_ptr = je_realloc((char *)ptr - PREFIX_SIZE, size + PREFIX_SIZE);
-
-	return (char *)new_ptr + PREFIX_SIZE;
+	return je_realloc(ptr, size);
 }
 
 void
 skynet_free(void *ptr) {
-	return; // no need for this test
+	if (!ptr) return;
+	je_free(ptr);
 }
 
 void *
 skynet_calloc(size_t nmemb, size_t size) {
-	uint32_t cookie_n = (PREFIX_SIZE+size-1)/size;
-	void* ptr = je_calloc(nmemb + cookie_n, size);
-
-	assert(cookie_n * size >= PREFIX_SIZE);
-	return (char *)ptr + PREFIX_SIZE;
+	return je_calloc(nmemb, size);
 }
 
 void *
 skynet_memalign(size_t alignment, size_t size) {
-	assert(false); // no need for this test
-
-	return NULL;
+	return je_memalign(alignment, size);
 }
 
 void *
 skynet_aligned_alloc(size_t alignment, size_t size) {
-	assert(false); // no need for this test
-
-	return NULL;
+	return je_aligned_alloc(alignment, size);
 }
 
 int
 skynet_posix_memalign(void **memptr, size_t alignment, size_t size) {
-	assert(false); // no need for this test
-
-	return 0;
+	return je_posix_memalign(memptr, alignment, size);
 }

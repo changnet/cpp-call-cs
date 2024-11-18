@@ -175,7 +175,7 @@ namespace
         {
             "TestPlugin.dll",
             "RunTest",
-			""
+			"ttttttttttttttttttt"
         };
 		PluginArgs gcargs
         {
@@ -185,8 +185,10 @@ namespace
         };
 
         load((void *)&args, sizeof(PluginArgs));
-        call(cargs);
+		std::cout << "wait 10s to call test" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10 * 1000));
 		call(gcargs);
+        call(cargs);
         unload((void*)&args, sizeof(PluginArgs));
 
 		std::cout << "wait 20s to update plugin" << std::endl;
