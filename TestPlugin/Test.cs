@@ -5,7 +5,7 @@
         public void RunTest()
         {
             Console.WriteLine("plugin RunTest...");
-            GC.Collect();
+            //GC.Collect();
         }
     }
 }

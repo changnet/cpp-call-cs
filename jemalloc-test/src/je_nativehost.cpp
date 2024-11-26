@@ -176,8 +176,9 @@ namespace
         };
 
         load((void *)&args, sizeof(PluginArgs));
-		std::cout << "wait 10s to call test" << std::endl;
+		std::cout << "wait 10s to before call" << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(10 * 1000));
+		
         call(cargs);
         unload((void*)&args, sizeof(PluginArgs));
 

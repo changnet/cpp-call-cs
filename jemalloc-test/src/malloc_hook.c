@@ -39,6 +39,11 @@ skynet_memalign(size_t alignment, size_t size) {
 }
 
 void *
+__libc_memalign(size_t alignment, size_t size) {
+	return je_memalign(alignment, size);
+}
+
+void *
 skynet_aligned_alloc(size_t alignment, size_t size) {
 	return je_aligned_alloc(alignment, size);
 }
